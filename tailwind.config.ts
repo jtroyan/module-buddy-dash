@@ -13,6 +13,10 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        display: ['Outfit', 'system-ui', 'sans-serif'],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -22,6 +26,21 @@ export default {
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+          glow: "hsl(var(--primary-glow))",
+        },
+        estado: {
+          revision: "hsl(var(--estado-revision))",
+          "revision-bg": "hsl(var(--estado-revision-bg))",
+          ok: "hsl(var(--estado-ok))",
+          "ok-bg": "hsl(var(--estado-ok-bg))",
+          pendiente: "hsl(var(--estado-pendiente))",
+          "pendiente-bg": "hsl(var(--estado-pendiente-bg))",
+          correcto: "hsl(var(--estado-correcto))",
+          "correcto-bg": "hsl(var(--estado-correcto-bg))",
+          error: "hsl(var(--estado-error))",
+          "error-bg": "hsl(var(--estado-error-bg))",
+          na: "hsl(var(--estado-na))",
+          "na-bg": "hsl(var(--estado-na-bg))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
