@@ -14,7 +14,115 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      actividades: {
+        Row: {
+          categoria: string
+          created_at: string
+          estado: string
+          id: string
+          modulo_id: string
+          nombre_actividad: string
+          observacion: string | null
+          orden: number
+          updated_at: string
+          valor: string | null
+        }
+        Insert: {
+          categoria: string
+          created_at?: string
+          estado?: string
+          id?: string
+          modulo_id: string
+          nombre_actividad: string
+          observacion?: string | null
+          orden?: number
+          updated_at?: string
+          valor?: string | null
+        }
+        Update: {
+          categoria?: string
+          created_at?: string
+          estado?: string
+          id?: string
+          modulo_id?: string
+          nombre_actividad?: string
+          observacion?: string | null
+          orden?: number
+          updated_at?: string
+          valor?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "actividades_modulo_id_fkey"
+            columns: ["modulo_id"]
+            isOneToOne: false
+            referencedRelation: "modulos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      modulos: {
+        Row: {
+          created_at: string
+          id: string
+          nombre: string
+          numero: number | null
+          orden: number
+          programa_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nombre: string
+          numero?: number | null
+          orden?: number
+          programa_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nombre?: string
+          numero?: number | null
+          orden?: number
+          programa_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "modulos_programa_id_fkey"
+            columns: ["programa_id"]
+            isOneToOne: false
+            referencedRelation: "programas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      programas: {
+        Row: {
+          created_at: string
+          id: string
+          nombre: string
+          orden: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nombre: string
+          orden?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nombre?: string
+          orden?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
