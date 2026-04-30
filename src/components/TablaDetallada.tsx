@@ -16,16 +16,37 @@ interface Props {
   programas: Programa[];
 }
 
-export function TablaDetallada({ modulos, actividades }: Props) {
+export function TablaDetallada({ modulos, actividades, programas }: Props) {
   const [filtro, setFiltro] = useState('');
   const [categoriaFiltro, setCategoriaFiltro] = useState<CategoriaKey | 'todas'>('todas');
+
+  // Mapa programa_id -> nombre corto, para mostrar de qué programa viene el principal en módulos comunes
+  const nombrePrograma = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const p of programas) m.set(p.id, p.nombre);
+    return m;
+  }, [programas]);
+
+  // Mapa para resolver el programa del módulo principal (cuando es copia)
+  const programaPrincipalDeCopia = useMemo(() => {
+    // Si tenemos solo un subset de módulos cargados (filtrado), igual sirve si el principal está en la lista
+    const m = new Map<string, string>(); // moduloId -> programa_id del principal
+    const all = new Map<string, Modulo>();
+    for (const x of modulos) all.set(x.id, x);
+    for (const x of modulos) {
+      if (x.modulo_principal_id) {
+        const p = all.get(x.modulo_principal_id);
+        if (p) m.set(x.id, p.programa_id);
+      }
+    }
+    return m;
+  }, [modulos]);
 
   const modulosFiltrados = useMemo(() => {
     const q = filtro.trim().toLowerCase();
     if (!q) return modulos;
     return modulos.filter((m) =>
-      m.nombre.toLowerCase().includes(q) ||
-      String(m.numero ?? '').includes(q),
+      m.nombre.toLowerCase().includes(q) || String(m.numero ?? '').includes(q),
     );
   }, [modulos, filtro]);
 
