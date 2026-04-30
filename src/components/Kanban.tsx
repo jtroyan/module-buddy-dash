@@ -91,12 +91,7 @@ function ModuloCard({
     const ok = items.filter((a) => isCompleto(a.estado)).length;
     return { ...c, total: items.length, ok };
   });
-  const principal = modulo.modulo_principal_id
-    ? programas.find((p) => modulos => true && false) // se calcula abajo
-    : null;
-  const programaPrincipal = modulo.modulo_principal_id
-    ? programas.find((p) => p.id === modulo.programa_id) // mostramos su propio prog; el principal real puede estar en otro, pero no lo tenemos resuelto aquí.
-    : null;
+  void programas; void nombreModulo; void nombreCortoPrograma;
 
   return (
     <Card className="p-3 hover:shadow-md transition-all cursor-pointer hover:border-primary/40 group">
