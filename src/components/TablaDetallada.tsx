@@ -96,10 +96,13 @@ export function TablaDetallada({ modulos, actividades, programas }: Props) {
 
       <Accordion type="multiple" className="space-y-2">
         {modulosFiltrados.map((m) => {
-          const acts = actividadesPorModulo.get(m.id) ?? [];
+          const acts = actsPorModulo.get(m.id) ?? [];
           const total = acts.length;
           const completadas = acts.filter((a) => isCompleto(a.estado)).length;
           const pct = total > 0 ? (completadas / total) * 100 : 0;
+          const esCopia = !!m.modulo_principal_id;
+          const progPrincipalId = programaPrincipalDeCopia.get(m.id);
+          const nombreProgPrincipal = progPrincipalId ? nombrePrograma.get(progPrincipalId) : null;
 
           return (
             <AccordionItem
@@ -110,12 +113,20 @@ export function TablaDetallada({ modulos, actividades, programas }: Props) {
               <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-muted/40">
                 <div className="flex items-center gap-3 flex-1 min-w-0 text-left">
                   {m.numero != null && (
-                    <span className="text-xs font-mono text-muted-foreground shrink-0 w-8">
-                      #{m.numero}
-                    </span>
+                    <span className="text-xs font-mono text-muted-foreground shrink-0 w-8">#{m.numero}</span>
                   )}
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium truncate">{m.nombre}</div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-medium truncate">{m.nombre}</span>
+                      {m.es_comun && (
+                        <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-accent/15 text-accent-foreground border border-accent/30">
+                          <Link2 className="h-2.5 w-2.5" />
+                          {esCopia
+                            ? `Común — heredado de ${nombreProgPrincipal ?? 'programa principal'}`
+                            : 'Común — principal'}
+                        </span>
+                      )}
+                    </div>
                     <div className="flex items-center gap-2 mt-1">
                       <div className="h-1.5 bg-muted rounded-full overflow-hidden flex-1 max-w-[200px]">
                         <div className="h-full gradient-primary rounded-full" style={{ width: `${pct}%` }} />
