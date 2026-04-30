@@ -2,12 +2,14 @@ import { useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { CATEGORIAS, isCompleto } from '@/lib/produccion';
-import type { Actividad, Modulo } from '@/hooks/useProduccion';
+import { CATEGORIAS, isCompleto, nombreModulo, nombreCortoPrograma } from '@/lib/produccion';
+import { actividadesDeModulo, type Actividad, type Modulo, type Programa } from '@/hooks/useProduccion';
+import { Link2 } from 'lucide-react';
 
 interface Props {
   modulos: Modulo[];
   actividades: Actividad[];
+  programas: Programa[];
 }
 
 const COLUMNAS = [
