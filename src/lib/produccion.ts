@@ -10,27 +10,17 @@ export const CATEGORIAS = [
 export type CategoriaKey = typeof CATEGORIAS[number]['key'];
 
 export const ESTADOS_PRINCIPALES = [
-  'Revisión',
-  'OK',
-  'Pendiente',
-  'Correcto',
-  'Sin Revisión',
-  'Cargar en drive',
-  'N/A',
+  'Revisión','OK','Pendiente','Correcto','Sin Revisión','Cargar en drive','N/A',
 ] as const;
 
-/** Normaliza un estado a uno de los principales. URLs/textos largos se consideran "OK" (tienen valor). */
 export function normalizarEstado(estado: string | null | undefined): string {
   if (!estado) return 'Revisión';
   const e = estado.trim();
   if (!e) return 'Revisión';
-  // URLs cuentan como OK (es contenido entregado)
   if (/^https?:\/\//i.test(e)) return 'OK';
-  // Estados conocidos (ignorar mayúsculas)
   for (const principal of ESTADOS_PRINCIPALES) {
     if (e.toLowerCase() === principal.toLowerCase()) return principal;
   }
-  // Texto libre largo (nombre de módulo en estado, etc) → tratar como Revisión
   if (e.length > 30) return 'Revisión';
   return e;
 }
@@ -60,8 +50,24 @@ export function isCompleto(estado: string): boolean {
 }
 
 export function nombreCortoPrograma(nombre: string): string {
-  // Extraer la palabra clave del programa (ej: "Tecnología en Gestión Contable...")
   const m = nombre.match(/(?:Tecnolog[íi]a|Tecnol[óo]gico|Ingenier[íi]a) (?:en|del?) ([A-ZÁÉÍÓÚa-záéíóú\s]+?)(?: por| articulad| con|$)/i);
   if (m) return m[1].trim();
   return nombre.length > 50 ? nombre.slice(0, 50) + '…' : nombre;
+}
+
+/** Etiqueta visual para el módulo, agregando indicador de común. */
+export function nombreModulo(
+  modulo: { nombre: string; numero: number | null; es_comun: boolean; modulo_principal_id: string | null; programa_id: string },
+  programas: { id: string; nombre: string }[],
+): string {
+  const base = modulo.numero != null ? `Módulo ${modulo.numero} — ${modulo.nombre}` : modulo.nombre;
+  if (modulo.es_comun) {
+    if (modulo.modulo_principal_id) {
+      return `${base}  ·  Módulo común (heredado)`;
+    }
+    const prog = programas.find((p) => p.id === modulo.programa_id);
+    const corto = prog ? nombreCortoPrograma(prog.nombre) : '';
+    return `${base}  ·  Módulo común — Principal de ${corto}`;
+  }
+  return base;
 }
