@@ -50,15 +50,16 @@ export function TablaDetallada({ modulos, actividades, programas }: Props) {
     );
   }, [modulos, filtro]);
 
-  const actividadesPorModulo = useMemo(() => {
-    const map = new Map<string, Actividad[]>();
-    for (const a of actividades) {
-      if (categoriaFiltro !== 'todas' && a.categoria !== categoriaFiltro) continue;
-      if (!map.has(a.modulo_id)) map.set(a.modulo_id, []);
-      map.get(a.modulo_id)!.push(a);
+  // Para cada módulo (incluso copia), traemos sus actividades efectivas (heredadas si es copia)
+  const actsPorModulo = useMemo(() => {
+    const m = new Map<string, Actividad[]>();
+    for (const mod of modulos) {
+      const all = actividadesDeModulo(mod, actividades);
+      const filt = categoriaFiltro === 'todas' ? all : all.filter((a) => a.categoria === categoriaFiltro);
+      m.set(mod.id, filt);
     }
-    return map;
-  }, [actividades, categoriaFiltro]);
+    return m;
+  }, [modulos, actividades, categoriaFiltro]);
 
   return (
     <div className="space-y-4">
