@@ -7,12 +7,13 @@ import {
 } from '@/components/ui/accordion';
 import { CATEGORIAS, isCompleto, type CategoriaKey } from '@/lib/produccion';
 import { EstadoSelect } from './EstadoSelect';
-import type { Actividad, Modulo } from '@/hooks/useProduccion';
-import { Search, ExternalLink } from 'lucide-react';
+import { actividadesDeModulo, type Actividad, type Modulo, type Programa } from '@/hooks/useProduccion';
+import { Search, ExternalLink, Link2 } from 'lucide-react';
 
 interface Props {
   modulos: Modulo[];
   actividades: Actividad[];
+  programas: Programa[];
 }
 
 export function TablaDetallada({ modulos, actividades }: Props) {
