@@ -7,36 +7,59 @@ import {
 } from '@/components/ui/accordion';
 import { CATEGORIAS, isCompleto, type CategoriaKey } from '@/lib/produccion';
 import { EstadoSelect } from './EstadoSelect';
-import type { Actividad, Modulo } from '@/hooks/useProduccion';
-import { Search, ExternalLink } from 'lucide-react';
+import { actividadesDeModulo, type Actividad, type Modulo, type Programa } from '@/hooks/useProduccion';
+import { Search, ExternalLink, Link2 } from 'lucide-react';
 
 interface Props {
   modulos: Modulo[];
   actividades: Actividad[];
+  programas: Programa[];
 }
 
-export function TablaDetallada({ modulos, actividades }: Props) {
+export function TablaDetallada({ modulos, actividades, programas }: Props) {
   const [filtro, setFiltro] = useState('');
   const [categoriaFiltro, setCategoriaFiltro] = useState<CategoriaKey | 'todas'>('todas');
+
+  // Mapa programa_id -> nombre corto, para mostrar de qué programa viene el principal en módulos comunes
+  const nombrePrograma = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const p of programas) m.set(p.id, p.nombre);
+    return m;
+  }, [programas]);
+
+  // Mapa para resolver el programa del módulo principal (cuando es copia)
+  const programaPrincipalDeCopia = useMemo(() => {
+    // Si tenemos solo un subset de módulos cargados (filtrado), igual sirve si el principal está en la lista
+    const m = new Map<string, string>(); // moduloId -> programa_id del principal
+    const all = new Map<string, Modulo>();
+    for (const x of modulos) all.set(x.id, x);
+    for (const x of modulos) {
+      if (x.modulo_principal_id) {
+        const p = all.get(x.modulo_principal_id);
+        if (p) m.set(x.id, p.programa_id);
+      }
+    }
+    return m;
+  }, [modulos]);
 
   const modulosFiltrados = useMemo(() => {
     const q = filtro.trim().toLowerCase();
     if (!q) return modulos;
     return modulos.filter((m) =>
-      m.nombre.toLowerCase().includes(q) ||
-      String(m.numero ?? '').includes(q),
+      m.nombre.toLowerCase().includes(q) || String(m.numero ?? '').includes(q),
     );
   }, [modulos, filtro]);
 
-  const actividadesPorModulo = useMemo(() => {
-    const map = new Map<string, Actividad[]>();
-    for (const a of actividades) {
-      if (categoriaFiltro !== 'todas' && a.categoria !== categoriaFiltro) continue;
-      if (!map.has(a.modulo_id)) map.set(a.modulo_id, []);
-      map.get(a.modulo_id)!.push(a);
+  // Para cada módulo (incluso copia), traemos sus actividades efectivas (heredadas si es copia)
+  const actsPorModulo = useMemo(() => {
+    const m = new Map<string, Actividad[]>();
+    for (const mod of modulos) {
+      const all = actividadesDeModulo(mod, actividades);
+      const filt = categoriaFiltro === 'todas' ? all : all.filter((a) => a.categoria === categoriaFiltro);
+      m.set(mod.id, filt);
     }
-    return map;
-  }, [actividades, categoriaFiltro]);
+    return m;
+  }, [modulos, actividades, categoriaFiltro]);
 
   return (
     <div className="space-y-4">
@@ -73,10 +96,13 @@ export function TablaDetallada({ modulos, actividades }: Props) {
 
       <Accordion type="multiple" className="space-y-2">
         {modulosFiltrados.map((m) => {
-          const acts = actividadesPorModulo.get(m.id) ?? [];
+          const acts = actsPorModulo.get(m.id) ?? [];
           const total = acts.length;
           const completadas = acts.filter((a) => isCompleto(a.estado)).length;
           const pct = total > 0 ? (completadas / total) * 100 : 0;
+          const esCopia = !!m.modulo_principal_id;
+          const progPrincipalId = programaPrincipalDeCopia.get(m.id);
+          const nombreProgPrincipal = progPrincipalId ? nombrePrograma.get(progPrincipalId) : null;
 
           return (
             <AccordionItem
@@ -87,12 +113,20 @@ export function TablaDetallada({ modulos, actividades }: Props) {
               <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-muted/40">
                 <div className="flex items-center gap-3 flex-1 min-w-0 text-left">
                   {m.numero != null && (
-                    <span className="text-xs font-mono text-muted-foreground shrink-0 w-8">
-                      #{m.numero}
-                    </span>
+                    <span className="text-xs font-mono text-muted-foreground shrink-0 w-8">#{m.numero}</span>
                   )}
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium truncate">{m.nombre}</div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-medium truncate">{m.nombre}</span>
+                      {m.es_comun && (
+                        <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-accent/15 text-accent-foreground border border-accent/30">
+                          <Link2 className="h-2.5 w-2.5" />
+                          {esCopia
+                            ? `Común — heredado de ${nombreProgPrincipal ?? 'programa principal'}`
+                            : 'Común — principal'}
+                        </span>
+                      )}
+                    </div>
                     <div className="flex items-center gap-2 mt-1">
                       <div className="h-1.5 bg-muted rounded-full overflow-hidden flex-1 max-w-[200px]">
                         <div className="h-full gradient-primary rounded-full" style={{ width: `${pct}%` }} />
