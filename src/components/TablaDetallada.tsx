@@ -14,9 +14,13 @@ interface Props {
   modulos: Modulo[];
   actividades: Actividad[];
   programas: Programa[];
+  /** Lista completa de módulos (sin filtrar por programa) para resolver módulos principales en otros programas. */
+  todosLosModulos?: Modulo[];
+  /** Si está viendo un programa concreto, su id; null = todos. */
+  programaActualId?: string | null;
 }
 
-export function TablaDetallada({ modulos, actividades, programas }: Props) {
+export function TablaDetallada({ modulos, actividades, programas, todosLosModulos, programaActualId }: Props) {
   const [filtro, setFiltro] = useState('');
   const [categoriaFiltro, setCategoriaFiltro] = useState<CategoriaKey | 'todas'>('todas');
 
@@ -27,12 +31,13 @@ export function TablaDetallada({ modulos, actividades, programas }: Props) {
     return m;
   }, [programas]);
 
-  // Mapa para resolver el programa del módulo principal (cuando es copia)
+  // Mapa para resolver el programa del módulo principal (cuando es copia).
+  // Si todosLosModulos está disponible, lo usamos para resolver principales que pueden estar fuera del filtro.
+  const lookupModulos = todosLosModulos ?? modulos;
   const programaPrincipalDeCopia = useMemo(() => {
-    // Si tenemos solo un subset de módulos cargados (filtrado), igual sirve si el principal está en la lista
     const m = new Map<string, string>(); // moduloId -> programa_id del principal
     const all = new Map<string, Modulo>();
-    for (const x of modulos) all.set(x.id, x);
+    for (const x of lookupModulos) all.set(x.id, x);
     for (const x of modulos) {
       if (x.modulo_principal_id) {
         const p = all.get(x.modulo_principal_id);
@@ -40,7 +45,7 @@ export function TablaDetallada({ modulos, actividades, programas }: Props) {
       }
     }
     return m;
-  }, [modulos]);
+  }, [modulos, lookupModulos]);
 
   const modulosFiltrados = useMemo(() => {
     const q = filtro.trim().toLowerCase();
