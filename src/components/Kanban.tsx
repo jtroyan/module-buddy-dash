@@ -10,6 +10,7 @@ interface Props {
   modulos: Modulo[];
   actividades: Actividad[];
   programas: Programa[];
+  todosLosModulos?: Modulo[];
 }
 
 const COLUMNAS = [
@@ -28,7 +29,7 @@ function clasificarModulo(actividades: Actividad[]): ColumnaKey {
   return 'en_proceso';
 }
 
-export function Kanban({ modulos, actividades, programas }: Props) {
+export function Kanban({ modulos, actividades, programas, todosLosModulos }: Props) {
   const grupos = useMemo(() => {
     const map: Record<ColumnaKey, Array<{ modulo: Modulo; total: number; completadas: number; acts: Actividad[] }>> = {
       sin_iniciar: [], en_proceso: [], completado: [],
@@ -68,6 +69,7 @@ export function Kanban({ modulos, actividades, programas }: Props) {
                     key={modulo.id}
                     modulo={modulo}
                     programas={programas}
+                    todosLosModulos={todosLosModulos ?? modulos}
                     total={total}
                     completadas={completadas}
                     actividades={acts}
@@ -83,15 +85,24 @@ export function Kanban({ modulos, actividades, programas }: Props) {
 }
 
 function ModuloCard({
-  modulo, programas, total, completadas, actividades,
-}: { modulo: Modulo; programas: Programa[]; total: number; completadas: number; actividades: Actividad[] }) {
+  modulo, programas, todosLosModulos, total, completadas, actividades,
+}: { modulo: Modulo; programas: Programa[]; todosLosModulos: Modulo[]; total: number; completadas: number; actividades: Actividad[] }) {
   const pct = total > 0 ? (completadas / total) * 100 : 0;
   const porCat = CATEGORIAS.map((c) => {
     const items = actividades.filter((a) => a.categoria === c.key);
     const ok = items.filter((a) => isCompleto(a.estado)).length;
     return { ...c, total: items.length, ok };
   });
-  void programas; void nombreModulo; void nombreCortoPrograma;
+
+  // Resolver programa origen del módulo común
+  let origenLabel: string | null = null;
+  if (modulo.es_comun) {
+    const origenId = modulo.modulo_principal_id
+      ? todosLosModulos.find((m) => m.id === modulo.modulo_principal_id)?.programa_id ?? modulo.programa_id
+      : modulo.programa_id;
+    const prog = programas.find((p) => p.id === origenId);
+    origenLabel = prog ? nombreCortoPrograma(prog.nombre) : null;
+  }
 
   return (
     <Card className="p-3 hover:shadow-md transition-all cursor-pointer hover:border-primary/40 group">
@@ -106,7 +117,9 @@ function ModuloCard({
           {modulo.es_comun && (
             <div className="inline-flex items-center gap-1 mt-1 text-[10px] px-1.5 py-0.5 rounded-full bg-accent/15 text-accent-foreground border border-accent/30">
               <Link2 className="h-2.5 w-2.5" />
-              {modulo.modulo_principal_id ? 'Común (heredado)' : 'Común (principal)'}
+              {modulo.modulo_principal_id
+                ? `Común de ${origenLabel ?? '—'} (heredado)`
+                : `Común — Principal de ${origenLabel ?? '—'}`}
             </div>
           )}
         </div>

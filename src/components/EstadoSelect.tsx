@@ -10,15 +10,20 @@ interface Props {
   actividadId: string;
   estado: string;
   className?: string;
+  /** Si true, el control queda solo lectura (módulo común visto desde un programa que no es el de origen). */
+  readOnly?: boolean;
+  /** Tooltip a mostrar cuando está bloqueado. */
+  readOnlyReason?: string;
 }
 
-export function EstadoSelect({ actividadId, estado, className }: Props) {
+export function EstadoSelect({ actividadId, estado, className, readOnly, readOnlyReason }: Props) {
   const qc = useQueryClient();
   const [valor, setValor] = useState(normalizarEstado(estado));
   const [saving, setSaving] = useState(false);
   const colors = colorEstado(valor);
 
   const onChange = async (nuevo: string) => {
+    if (readOnly) return;
     const prev = valor;
     setValor(nuevo);
     setSaving(true);
@@ -35,6 +40,21 @@ export function EstadoSelect({ actividadId, estado, className }: Props) {
     toast.success('Estado actualizado');
     qc.invalidateQueries({ queryKey: ['actividades'] });
   };
+
+  if (readOnly) {
+    return (
+      <span
+        title={readOnlyReason ?? 'Solo lectura'}
+        className={cn(
+          'h-7 px-2.5 py-0 text-xs font-medium border rounded-full inline-flex items-center min-w-[100px] gap-1.5 opacity-80 cursor-not-allowed',
+          colors.bg, colors.fg, colors.border,
+          className,
+        )}
+      >
+        🔒 {valor}
+      </span>
+    );
+  }
 
   return (
     <Select value={valor} onValueChange={onChange} disabled={saving}>

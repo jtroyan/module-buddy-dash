@@ -55,18 +55,37 @@ export function nombreCortoPrograma(nombre: string): string {
   return nombre.length > 50 ? nombre.slice(0, 50) + '…' : nombre;
 }
 
-/** Etiqueta visual para el módulo, agregando indicador de común. */
+/**
+ * Devuelve el id del programa de origen del módulo (su principal si es copia, o el suyo).
+ * Necesita la lista completa de módulos cargados para poder mirar al principal.
+ */
+export function programaOrigenDeModulo(
+  modulo: { id: string; programa_id: string; modulo_principal_id: string | null },
+  todosLosModulos: { id: string; programa_id: string }[],
+): string {
+  if (modulo.modulo_principal_id) {
+    const principal = todosLosModulos.find((m) => m.id === modulo.modulo_principal_id);
+    if (principal) return principal.programa_id;
+  }
+  return modulo.programa_id;
+}
+
+/** Etiqueta visual para el módulo, agregando indicador de común con el programa de origen. */
 export function nombreModulo(
-  modulo: { nombre: string; numero: number | null; es_comun: boolean; modulo_principal_id: string | null; programa_id: string },
+  modulo: { nombre: string; numero: number | null; es_comun: boolean; modulo_principal_id: string | null; programa_id: string; id: string },
   programas: { id: string; nombre: string }[],
+  todosLosModulos?: { id: string; programa_id: string }[],
 ): string {
   const base = modulo.numero != null ? `Módulo ${modulo.numero} — ${modulo.nombre}` : modulo.nombre;
   if (modulo.es_comun) {
+    const origenId = todosLosModulos
+      ? programaOrigenDeModulo(modulo, todosLosModulos)
+      : modulo.programa_id;
+    const prog = programas.find((p) => p.id === origenId);
+    const corto = prog ? nombreCortoPrograma(prog.nombre) : 'otro programa';
     if (modulo.modulo_principal_id) {
-      return `${base}  ·  Módulo común (heredado)`;
+      return `${base}  ·  Módulo común de ${corto} (heredado)`;
     }
-    const prog = programas.find((p) => p.id === modulo.programa_id);
-    const corto = prog ? nombreCortoPrograma(prog.nombre) : '';
     return `${base}  ·  Módulo común — Principal de ${corto}`;
   }
   return base;
