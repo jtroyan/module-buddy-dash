@@ -481,16 +481,16 @@ function BackupRestaurar() {
         return out;
       };
 
-      for (const lote of chunk(dump.programas, 500)) {
-        const { error } = await supabase.from('programas').insert(lote);
+      for (const lote of chunk(dump.programas as any[], 500)) {
+        const { error } = await supabase.from('programas').insert(lote as any);
         if (error) throw new Error('Programas: ' + error.message);
       }
-      for (const lote of chunk(dump.modulos, 500)) {
-        const { error } = await supabase.from('modulos').insert(lote);
+      for (const lote of chunk(dump.modulos as any[], 500)) {
+        const { error } = await supabase.from('modulos').insert(lote as any);
         if (error) throw new Error('Módulos: ' + error.message);
       }
-      for (const lote of chunk(dump.actividades, 1000)) {
-        const { error } = await supabase.from('actividades').insert(lote);
+      for (const lote of chunk(dump.actividades as any[], 1000)) {
+        const { error } = await supabase.from('actividades').insert(lote as any);
         if (error) throw new Error('Actividades: ' + error.message);
       }
       toast.success(`Restaurado: ${dump.programas.length} programas · ${dump.modulos.length} módulos · ${dump.actividades.length} actividades`);
