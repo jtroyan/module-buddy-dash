@@ -177,6 +177,7 @@ export type Database = {
         Returns: boolean
       }
       limpiar_actividades_copias: { Args: never; Returns: number }
+      programa_origen_modulo: { Args: { _modulo_id: string }; Returns: string }
     }
     Enums: {
       app_role: "admin" | "user"
