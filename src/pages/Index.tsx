@@ -17,6 +17,9 @@ const Index = () => {
 
   const { data: programas = [], isLoading: lp } = useProgramas();
   const { data: modulos = [], isLoading: lm } = useModulos(programaId === 'all' ? null : programaId);
+  // Cargamos también la lista completa de módulos (ligero) para resolver módulos principales
+  // que pueden vivir en otro programa cuando estamos viendo solo uno.
+  const { data: todosLosModulos = [] } = useModulos(null);
   const { data: actividades = [], isLoading: la } = useActividades(modulos);
 
   const cargando = lp || lm || la;
@@ -94,10 +97,16 @@ const Index = () => {
               />
             </TabsContent>
             <TabsContent value="kanban" className="mt-4">
-              <Kanban modulos={modulos} actividades={actividades} programas={programas} />
+              <Kanban modulos={modulos} actividades={actividades} programas={programas} todosLosModulos={todosLosModulos} />
             </TabsContent>
             <TabsContent value="tabla" className="mt-4">
-              <TablaDetallada modulos={modulos} actividades={actividades} programas={programas} />
+              <TablaDetallada
+                modulos={modulos}
+                actividades={actividades}
+                programas={programas}
+                todosLosModulos={todosLosModulos}
+                programaActualId={programaId === 'all' ? null : programaId}
+              />
             </TabsContent>
           </Tabs>
         )}
