@@ -108,6 +108,9 @@ export function TablaDetallada({ modulos, actividades, programas, todosLosModulo
           const esCopia = !!m.modulo_principal_id;
           const progPrincipalId = programaPrincipalDeCopia.get(m.id);
           const nombreProgPrincipal = progPrincipalId ? nombrePrograma.get(progPrincipalId) : null;
+          // Bloqueamos edición si el usuario está viendo una copia desde un programa que NO es el de origen.
+          // Si está en "todos" (programaActualId null), permitimos edición desde la fila principal solamente.
+          const bloqueado = esCopia; // las copias siempre son solo lectura, hereda del principal
 
           return (
             <AccordionItem
@@ -127,8 +130,8 @@ export function TablaDetallada({ modulos, actividades, programas, todosLosModulo
                         <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-accent/15 text-accent-foreground border border-accent/30">
                           <Link2 className="h-2.5 w-2.5" />
                           {esCopia
-                            ? `Común — heredado de ${nombreProgPrincipal ?? 'programa principal'}`
-                            : 'Común — principal'}
+                            ? `Módulo común de ${nombreProgPrincipal ?? 'otro programa'} (heredado · solo lectura)`
+                            : 'Módulo común — Principal (editable aquí)'}
                         </span>
                       )}
                     </div>
@@ -149,7 +152,11 @@ export function TablaDetallada({ modulos, actividades, programas, todosLosModulo
                     Sin actividades en esta categoría
                   </div>
                 ) : (
-                  <ActividadesPorCategoria actividades={acts} />
+                  <ActividadesPorCategoria
+                    actividades={acts}
+                    readOnly={bloqueado}
+                    readOnlyReason={bloqueado ? `Este módulo común se edita desde su programa de origen: ${nombreProgPrincipal ?? ''}` : undefined}
+                  />
                 )}
               </AccordionContent>
             </AccordionItem>
@@ -165,7 +172,9 @@ export function TablaDetallada({ modulos, actividades, programas, todosLosModulo
   );
 }
 
-function ActividadesPorCategoria({ actividades }: { actividades: Actividad[] }) {
+function ActividadesPorCategoria({
+  actividades, readOnly, readOnlyReason,
+}: { actividades: Actividad[]; readOnly?: boolean; readOnlyReason?: string }) {
   const agrupadas = useMemo(() => {
     const m = new Map<string, Actividad[]>();
     for (const a of actividades) {
@@ -188,7 +197,7 @@ function ActividadesPorCategoria({ actividades }: { actividades: Actividad[] }) 
             </div>
             <div className="grid gap-1.5">
               {items.map((a) => (
-                <ActividadRow key={a.id} actividad={a} />
+                <ActividadRow key={a.id} actividad={a} readOnly={readOnly} readOnlyReason={readOnlyReason} />
               ))}
             </div>
           </div>
@@ -198,7 +207,9 @@ function ActividadesPorCategoria({ actividades }: { actividades: Actividad[] }) 
   );
 }
 
-function ActividadRow({ actividad }: { actividad: Actividad }) {
+function ActividadRow({
+  actividad, readOnly, readOnlyReason,
+}: { actividad: Actividad; readOnly?: boolean; readOnlyReason?: string }) {
   const isUrl = actividad.valor && /^https?:\/\//i.test(actividad.valor);
   return (
     <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
@@ -224,7 +235,12 @@ function ActividadRow({ actividad }: { actividad: Actividad }) {
           </div>
         )}
       </div>
-      <EstadoSelect actividadId={actividad.id} estado={actividad.estado} />
+      <EstadoSelect
+        actividadId={actividad.id}
+        estado={actividad.estado}
+        readOnly={readOnly}
+        readOnlyReason={readOnlyReason}
+      />
     </div>
   );
 }
